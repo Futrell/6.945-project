@@ -31,9 +31,9 @@
 	 )
 
   (let* ((encoded-message (agent-encode alice semantics))
-	 (decoded-message (agent-decode bob encoded-message))) 
-    ;; this is starting to feel like OOP...
-    decoded-message))
+	 (decoded-semantics (agent-decode bob encoded-message)))
+    ;; is message passing style the way to go here?
+    decoded-semantics))
 
 (define (run-communication-trial universe)
   (let ((from-agent (select-from-agent universe))
