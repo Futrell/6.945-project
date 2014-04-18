@@ -56,17 +56,19 @@
   (define grammar '())
 
   (define (add-meaning-message-pair-to-grammar! meaning message)
-    (set! grammar (cons (list meaning message) grammar)))
+    (set! grammar (cons (list meaning message) grammar))
+    (pp "new grammar:")
+    (pp grammar))
 
   (define (dont-know-message-for-meaning meaning)
     (let ((made-up-message (gensym)))
+      (add-meaning-message-pair-to-grammar! meaning made-up-message)
       made-up-message))
 
   (define (dont-know-meaning-of-message message)
     'i-dont-know) ; give up
 
   (define (meaning->message meaning)
-    (pp meaning)
     (let ((message (lookup-ref meaning grammar 0)))
       (if message
 	  message
@@ -168,12 +170,7 @@
 		  (run-cycle 'training)))
     (do-n-times number-of-test-runs
 		(lambda ()
-		  (run-cycle 'testing)))
-    (pp "Agent 1 Grammar:")
-    (pp (get-grammar (get-language (car agents))))
-    (pp "Agent 2 Grammar:")
-    (pp (get-grammar (get-language (cadr agents)))))
-
+		  (run-cycle 'testing))))
   run)
 
 (define (make-simple-experiment)
@@ -202,7 +199,7 @@
 	 clock)
   (set! clock (+ clock 1))
   (let* ((meanings (agents-perceive agents event parameters))
-	 (sent-messages (tap (agents-encode agents meanings parameters)))
+	 (sent-messages (agents-encode agents meanings parameters))
 	 (received-messages (transmit sent-messages channel))
 	 (decoded-meanings (agents-decode agents received-messages 
 					  parameters))
@@ -242,7 +239,7 @@
   (let ((agent-to-listen (list-ref agents (- 1 (car parameters)))))
     (map (lambda (agent message) 
 	   (if (eq? agent agent-to-listen)
-	       ((get-encode-proc (get-language agent)) message)
+	       ((get-decode-proc (get-language agent)) message)
 	       'silence))
 	   agents messages)))
 
