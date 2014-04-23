@@ -55,6 +55,8 @@
 (define (make-simple-language) 
   (define grammar '())
 
+  (define respond-to-feedback! add-meaning-message-pair-to-grammar!)
+
   (define (add-meaning-message-pair-to-grammar! meaning message)
     (set! grammar (cons (list meaning message) grammar))
     (pp "new grammar:")
@@ -68,8 +70,9 @@
   (define (dont-know-meaning-of-message message)
     'i-dont-know) ; give up
 
-  (define (meaning->message meaning)
-    (let ((message (lookup-ref meaning grammar 0)))
+  (define (meaning->message meaning) ; Make these "abstract methods"
+    (let ((message (lookup-ref meaning grammar 0))) ; make this
+                                        ; grammar-lookup 
       (if message
 	  message
 	  (dont-know-message-for-meaning meaning))))
@@ -89,7 +92,7 @@
 				    ; things....
     (if (not (eq? feedback 'ok))
 	(begin
-	  (apply add-meaning-message-pair-to-grammar! feedback))))
+	  (apply respond-to-feedback! feedback))))
 
 
   (make-language grammar 
@@ -214,6 +217,7 @@
 					; seem right to pass in all
 					; this stuff...
     (update-agents! agents feedback-signals)
+    'ok
     ))
 
 (define (update-agents! agents feedback-signals)
@@ -259,8 +263,7 @@
 ;;; 'i-dont-know or gets it wrong, the universe will tell him what was
 ;;; intended. (In this simple setup, an agent should never get
 ;;; anything wrong.)
-(define (get-feedback agents intended-meanings decoded-meanings
-		      sent-messages received-messages
+(define (get-feedback agents received-messages
 		      event interpretations
 		      parameters)
   (map (lambda (agent received-message interpretation)
@@ -270,4 +273,16 @@
 	     (list ((get-perceive-proc agent) event) received-message)
 	     'ok))
        agents received-messages interpretations))
+
+;;; Two functions: one doing the mapping here; another calculating
+;;; what the feedback is, along these dimensions:
+
+;;;                correction     right/wrong
+;;; no reason
+;;; reason
+;;; 
+
+;;; Refactor Each AGENT asks for a kind of feedback. XXXX
+;;; Generalize the language interface XX
+;;; Names: Write a document to standardize. 
 
