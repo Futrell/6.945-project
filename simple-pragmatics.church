@@ -1,0 +1,61 @@
+;;; Level 0
+
+(define (matches alist thing)
+  (define (find-matches alist found-so-far)
+    (if (null? alist)
+        found-so-far
+        (let ((first-pair (first alist)))
+          (if (eq? (first first-pair) thing)
+              (find-matches (rest alist)
+                            (pair (second first-pair) found-so-far))
+              (find-matches (rest alist)
+                            found-so-far)))))
+  (find-matches alist '()))
+  
+(define lexicon
+  '((man man)
+    (man man-with-nothing)
+
+    (man-with-only-glasses man)
+    (man-with-only-glasses man-with-glasses)
+    (man-with-only-glasses man-with-only-glasses)
+
+    (man-with-hat-and-glasses man)
+    (man-with-hat-and-glasses man-with-glasses)
+    (man-with-hat-and-glasses man-with-hat)
+    (man-with-hat-and-glasses man-with-hat-and-glasses)))
+    
+
+(define (sample-universe)
+  (uniform-draw '(man
+                  man-with-only-glasses
+                  man-with-hat-and-glasses)))
+  
+(define (speaker/0 meaning lexicon)
+  (uniform-draw (matches lexicon meaning)))
+
+(define (listener/1 message lexicon)
+  (query
+   (define intended-meaning (sample-thing))
+
+   intended-meaning
+
+   (eq? (speaker/0 intended-meaning lexicon) message)))
+
+
+;;; Level 1
+
+(define (meaning->message/pragmatic meaning lexicon)
+  (query
+
+   (define message
+     (query
+      
+
+   message
+
+   (eq? (message->meaning/literal message lexicon)
+        meaning)))
+      
+  
+
