@@ -6,8 +6,12 @@
 ;;; 4. make-pragmatic-listener meaning->message
 ;;;
 ;;; Those can be implemented in Church or with propagators or whatever
-;;; (I will try to do that now).
+;;; (I will try to do that now). So this interface needs to be legal
+;;; Scheme code as well as Church code. 
 
+(load "helpers")
+
+;;; This stuff should probably be elsewhere:
 (define (make-language-interface meaning->message message->meaning)
   (vector meaning->message message->meaning))
 
@@ -47,6 +51,21 @@
   (make-language-interface
    (make-pragmatic-speaker (language-interface-message->meaning
                             language-interface))
-   (make-pragmatic-listener (langauge-interface-meaning->message
-                             langauge-interface))))
+   (make-pragmatic-listener (language-interface-meaning->message
+                             language-interface))))
 
+(define (make-pragmatic-language-interface-with-depth n base)
+  ((iterate make-pragmatic-language-interface n) base))
+
+#| Now you can do stuff like:
+
+(make-pragmatic-language-interface
+ (make-pragmatic-language-interface
+  (make-pragmatic-language-interface
+   (make-pragmatic-language-interface
+    (make-pragmatic-language-interface
+     (make-literal-listener-language-interface lexicon))))))
+
+Which will probably be horrifyingly slow!
+
+|#

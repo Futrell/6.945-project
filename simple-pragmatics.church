@@ -1,21 +1,37 @@
-;;; Level 0
+;;; Church code for a simple pragmatic communication model.
+;;; This should be interoperable with our interface (if we can get
+;;; Scheme to call Church code!). I'll try a few non-Church
+;;; implementations of this too.
 
-(define (matches alist thing)
-  (define (find-matches alist found-so-far)
-    (if (null? alist)
-        found-so-far
-        (let ((first-pair (first alist)))
-          (if (eq? (first first-pair) thing)
-              (find-matches (rest alist)
-                            (pair (second first-pair) found-so-far))
-              (find-matches (rest alist)
-                            found-so-far)))))
-  (find-matches alist '()))
-  
+;;; Assume a base production model (lexicon) where the speaker just
+;;; says some feature describing an object. We'll build from there.
+
+(define (match-procedure thing-to-query thing-to-get)
+  (define (matches alist thing)
+    (define (find-matches alist found-so-far)
+      (if (null? alist)
+          found-so-far
+          (let ((first-pair (first alist)))
+            (if (eq? (thing-to-query first-pair) thing)
+                (find-matches (rest alist)
+                              (pair (thing-to-get first-pair) found-so-far))
+                (find-matches (rest alist)
+                              found-so-far)))))
+    (find-matches alist '()))
+  matches)
+
+(define matches (match-procedure first second))
+(define reverse-matches (match-procedure second first))
+
+(define (sample-universe-event)
+  (uniform-draw '(man
+                  man-with-only-glasses
+                  man-with-hat-and-glasses)))
+
 (define lexicon
   '((man man)
     (man man-with-nothing)
-
+    
     (man-with-only-glasses man)
     (man-with-only-glasses man-with-glasses)
     (man-with-only-glasses man-with-only-glasses)
@@ -24,38 +40,23 @@
     (man-with-hat-and-glasses man-with-glasses)
     (man-with-hat-and-glasses man-with-hat)
     (man-with-hat-and-glasses man-with-hat-and-glasses)))
-    
 
-(define (sample-universe)
-  (uniform-draw '(man
-                  man-with-only-glasses
-                  man-with-hat-and-glasses)))
-  
-(define (speaker/0 meaning lexicon)
-  (uniform-draw (matches lexicon meaning)))
+(define (make-literal-speaker lexicon)
+  (lambda (meaning)
+    (uniform-draw (matches lexicon meaning))))
 
-(define (listener/1 message lexicon)
-  (query
-   (define intended-meaning (sample-thing))
+(define (make-literal-listener lexicon)
+  (lambda (message)
+    (uniform-draw (reverse-matches lexicon meaning))))
 
-   intended-meaning
+(define (make-pragmatic-listener meaning->messsage)
+  (lambda (message)
+    (query
+      (define intended-meaning (sample-universe-event))
+      intended-meaning     
+      (eq? (meaning->message intended-meaning) message))))
 
-   (eq? (speaker/0 intended-meaning lexicon) message)))
-
-
-;;; Level 1
-
-(define (meaning->message/pragmatic meaning lexicon)
-  (query
-
-   (define message
-     (query
-      
-
-   message
-
-   (eq? (message->meaning/literal message lexicon)
-        meaning)))
-      
-  
-
+(define (make-pragmatic-speaker message->meaning)
+  (lambda (meaning)
+    (query
+     ...)))
