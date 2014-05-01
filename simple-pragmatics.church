@@ -6,6 +6,9 @@
 ;;; Assume a base production model (lexicon) where the speaker just
 ;;; says some feature describing an object. We'll build from there.
 
+(define (sample-universe-event)
+  (uniform-draw universe))
+
 (define (match-procedure thing-to-query thing-to-get)
   (define (matches alist thing)
     (define (find-matches alist found-so-far)
@@ -23,40 +26,33 @@
 (define matches (match-procedure first second))
 (define reverse-matches (match-procedure second first))
 
-(define (sample-universe-event)
-  (uniform-draw '(man
-                  man-with-only-glasses
-                  man-with-hat-and-glasses)))
-
-(define lexicon
-  '((man man)
-    (man man-with-nothing)
-    
-    (man-with-only-glasses man)
-    (man-with-only-glasses man-with-glasses)
-    (man-with-only-glasses man-with-only-glasses)
-
-    (man-with-hat-and-glasses man)
-    (man-with-hat-and-glasses man-with-glasses)
-    (man-with-hat-and-glasses man-with-hat)
-    (man-with-hat-and-glasses man-with-hat-and-glasses)))
-
 (define (make-literal-speaker lexicon)
+  ;; Associate meanings to words.
   (lambda (meaning)
     (uniform-draw (matches lexicon meaning))))
 
 (define (make-literal-listener lexicon)
+  ;; Associate words to meanings.
   (lambda (message)
     (uniform-draw (reverse-matches lexicon meaning))))
 
 (define (make-pragmatic-listener meaning->messsage)
+  ;; Infer the meaning of a message using Church's query form.
   (lambda (message)
     (query
       (define intended-meaning (sample-universe-event))
-      intended-meaning     
+      intended-meaning
       (eq? (meaning->message intended-meaning) message))))
 
-(define (make-pragmatic-speaker message->meaning)
+(define (make-pragmatic-speaker message->meaning meaning->message)
+  ;; Sample from the softmax of the listener's posterior distribution.
+  ;; I don't know how to do softmax in Church so I'll just do a Monte
+  ;; Carlo approximation of the listener's posterior and then
+  ;; rejection sampling from that. This is going to be horrifyingly
+  ;; slow. (The Smith paper uses importance sampling.) But the Church
+  ;; code is conceptual anyway...
   (lambda (meaning)
     (query
-     ...)))
+     (define message (meaning->message (sample-universe-event)))
+     message
+     (eq? (message->meaning message) meaning))))

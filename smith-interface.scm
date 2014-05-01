@@ -30,29 +30,33 @@
     'IMPLEMENT-ME))
 
 (define (make-pragmatic-listener meaning->message)
-  'IMPLEMENT-ME)
+  (lambda (meaning)
+    'IMPLEMENT-ME))
 
-(define (make-pragmatic-speaker message->meaning)
-  'IMPLEMENT-ME)
+(define (make-pragmatic-speaker message->meaning meaning->message)
+  (lambda (message)
+    'IMPLEMENT-ME))
 
 (define (make-literal-speaker-language-interface lexicon)
   (let ((speaker (make-literal-speaker lexicon)))
     (make-language-interface
-     speaker
+     (make-literal-speaker lexicon)
      (make-pragmatic-listener speaker))))
 
 (define (make-literal-listener-language-interface lexicon)
-  (let ((listener (make-literal-listener lexicon)))
+  (make-language-interface
     (make-language-interface
-     (make-pragmatic-speaker listener)
-     listener)))
+     (make-pragmatic-speaker listener (make-literal-speaker lexicon))
+     (make-literal-listener lexicon))))
 
 (define (make-pragmatic-language-interface language-interface)
-  (make-language-interface
-   (make-pragmatic-speaker (language-interface-message->meaning
-                            language-interface))
-   (make-pragmatic-listener (language-interface-meaning->message
-                             language-interface))))
+  (let ((message->meaning
+         (language-interface-message->meaning langauge-interface))
+        (meaning->message
+         (language-interface-meaning->message language-interface)))
+    (make-language-interface
+     (make-pragmatic-speaker message->meaning meaning->message)
+     (make-pragmatic-listener meaning->message))))
 
 (define (make-pragmatic-language-interface-with-depth n base)
   ((iterate make-pragmatic-language-interface n) base))
