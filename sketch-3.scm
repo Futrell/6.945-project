@@ -22,7 +22,7 @@
 ;;;    Bob -> Alice (Alice's decoding procedure)
 ;;;    Optional: Feedback Alice -> Bob and/or Bob -> Alice. 
 ;;;    Optional: Feedback Universe -> Alice.
-;;;
+;;; 
 ;;; Things:
 ;;;    Universe: Generates events.
 ;;;    Channel: The communication channel, introduces noise maybe.
