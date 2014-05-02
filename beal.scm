@@ -83,6 +83,46 @@
 
 ;;; LANGUAGE
 
+(define initial-comm-lines-per-agent-symbl 600)
+
+;;; Like dict-put!, but sets conflicting comm line values to 'X, with
+;;; the exception of 0 which can be overwritten
+(define (comm-lines-put! alist key val) 
+  ;; Adds a value to a key, replacing previous values for
+  ;; the key 
+  (if (and (assq key alist) 
+           (not (eq? (assq key alist) dict-end)))
+      (let ((dict-mem (member-procedure 
+                        (lambda (ele obj) (eq? obj (car ele))))))
+        (if (or (eq? (cadr (assq key alist)) val)
+                (eq? (cadr (assq key alist)) 0))
+            (set-car! (dict-mem key alist) (list key val))
+            (set-car! (dict-mem key alist) (list key 'X)) ))
+      (begin
+        (set-car! (list-tail alist (- (length alist) 1))
+                  (list key val))
+        (set-cdr! (list-tail alist (- (length alist) 1))
+                  (list dict-end)))))
+
+(define (comm-lines-merge c1 c2)
+  (define new-line-set (dict))
+  (define (helper comm-line-set)
+    (if (not (eq? (car comm-line-set) dict-end))
+        (begin 
+          (comm-lines-put! new-line-set
+                           (caar comm-line-set)
+                           (cadar comm-line-set))
+          (helper (cdr comm-line-set)))))
+  (helper c1)
+  (helper c2)
+  new-line-set)
+
+(define (comm-lines-choose-vals c1))
+
+(define (random-comm-set)
+  (define line-set (dict))
+  (define (helper init
+
 ;;; (symbol, inflection)
 
 (define (make-simple-language parent-agent) 
