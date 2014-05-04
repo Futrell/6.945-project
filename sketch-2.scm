@@ -140,6 +140,7 @@
                        message->meaning
                        update-grammar!
                        parent-agent)
+
   (list grammar 
         meaning->message 
         message->meaning 
@@ -294,7 +295,7 @@
 (define (noiseless-channel message) message)
 
 
-(define (channel-transmit channel)
+(define (channel-transmit channel parameters)
   (let* ((a1-message 
           (get-last-message-out 
             (get-history (get-channel-agent1 channel))))
@@ -390,7 +391,8 @@
   (set! clock (+ clock 1))
   (agents-perceive agents event parameters)
   (agents-encode agents parameters)
-  (map channel-transmit channels)
+  (map (lambda (chan) (channel-transmit chan parameters)) 
+       channels)
   (agents-decode channels parameters)
   (agents-interpret channels parameters)
   (do-feedback channels parameters) ; what is
