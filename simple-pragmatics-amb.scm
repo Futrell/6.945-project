@@ -5,6 +5,10 @@
 ;;; sampling. 
 
 (load "helpers")
+(load "stack-queue")
+(load "ambsch")
+
+(init-amb)
 
 (define *sample-size* 5)
 
@@ -43,16 +47,15 @@
 
 (define (make-pragmatic-listener meaning->message)
   (lambda (message)
-    (let ((meaning (amb universe))) ; rejection sampling
-      (if (eq? (meaning->message meaning) message)
-          meaning
-          (amb)))))
+    (let ((possible-meanings ((iterate sample-universe-event *sample-size*))))
+      (let ((meaning (amb-from-list possible-meanings)))
+        (require (eq? (meaning->message meaning) message))
+        meaning))))
 
 (define (make-pragmatic-speaker message->meaning meaning->message)
   (lambda (meaning)
     (let ((possible-messages
            ((iterate meaning->message *sample-size*) meaning)))
-      (let (message (amb possible-messages)) ; rejection sampling
-        (if (eq? (message->meaning message) meaning)
-            message
-            (amb))))))
+      (let (message (amb-from-list possible-messages)) ; rejection sampling
+        (require (eq? (message->meaning message) meaning))
+        message))))
