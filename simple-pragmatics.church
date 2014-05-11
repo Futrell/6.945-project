@@ -1,14 +1,17 @@
-;;; Church code for a simple pragmatic communication model.
-;;; This should be interoperable with our interface (if we can get
-;;; Scheme to call Church code!). I'll try a few non-Church
-;;; implementations of this too.
+;;; Church code for a simple pragmatic communication model as in
+;;; Smith, Goodman, and Frank (2013).
+;;;
+;;; Since the existing Church implementations are very slow, I have
+;;; not been able to test this code except for very simple cases. It
+;;; is more useful as a conceptual framework than as a working
+;;; implementation. 
 
-;;; Assume a base production model (lexicon) where the speaker just
-;;; says some feature describing an object. We'll build from there.
-
+;;; We assume a universe which is a list of events. Events are drawn
+;;; from the universe uniformly. 
 (define (sample-universe-event)
   (uniform-draw universe))
 
+;;; These are procedures that will be useful for the literal agents.
 (define (match-procedure thing-to-query thing-to-get)
   (define (matches alist thing)
     (define (find-matches alist found-so-far)
@@ -26,33 +29,46 @@
 (define matches (match-procedure first second))
 (define reverse-matches (match-procedure second first))
 
+;;; This is a speaker (meaning->message procedure) who just says
+;;; things that are literally true by consulting a lexicon. If there
+;;; are multiple appropriate words in the lexicon, this speaker
+;;; chooses among those uniformly at random.
 (define (make-literal-speaker lexicon)
-  ;; Associate meanings to words.
   (lambda (meaning)
     (uniform-draw (matches lexicon meaning))))
 
+;;; This is a listener (message->meaning procedure) that just looks up
+;;; the meaning of a message in a lexicon. If there are multiple
+;;; meanings matching the message, this listener chooses a meaning
+;;; uniformly at random.
 (define (make-literal-listener lexicon)
-  ;; Associate words to meanings.
   (lambda (message)
-    (uniform-draw (reverse-matches lexicon meaning))))
+    (uniform-draw (reverse-matches lexicon message))))
 
-(define (make-pragmatic-listener meaning->messsage)
-  ;; Infer the meaning of a message using Church's query form.
+;;; This is a listener (message->meaning procedure) who figures out
+;;; the meaning of a message by inferring the most likely meaning that
+;;; would have produced this message according to the meaning->message
+;;; procedure which we pass in.
+(define (make-pragmatic-listener meaning->message)
   (lambda (message)
     (query
       (define intended-meaning (sample-universe-event))
       intended-meaning
       (eq? (meaning->message intended-meaning) message))))
 
+;;; This is a speaker (meaning->message procedure) who figures out the
+;;; message that a hearer (the message->meaning procedure that you
+;;; pass in) would be most likely to interpret as the intended
+;;; meaning. That is, this speaker takes a meaning and samples a
+;;; message according to the probability that a hearer will interpret
+;;; the message as that meaning. In the original paper, the speaker
+;;; actually samples from the softmax of that distribution. I do not
+;;; perform that optimization here.
 (define (make-pragmatic-speaker message->meaning meaning->message)
-  ;; Sample from the softmax of the listener's posterior distribution.
-  ;; I don't know how to do softmax in Church so I'll just do a Monte
-  ;; Carlo approximation of the listener's posterior and then
-  ;; rejection sampling from that. This is going to be horrifyingly
-  ;; slow. (The Smith paper uses importance sampling.) But the Church
-  ;; code is conceptual anyway...
   (lambda (meaning)
     (query
      (define message (meaning->message (sample-universe-event)))
      message
      (eq? (message->meaning message) meaning))))
+
+

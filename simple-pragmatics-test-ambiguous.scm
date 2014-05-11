@@ -1,3 +1,5 @@
+;;; A more realistic world where messages are ambiguous.
+
 (define universe '(man
                    man-with-only-glasses
                    man-with-hat-and-glasses))
