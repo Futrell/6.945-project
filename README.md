@@ -35,27 +35,23 @@ So in interpreting and formulating utterances, agents S and L have to reason abo
 
 Crucially for our framework, a pragmatically reasoning speaker can work just by sampling from the distribution of utterances from any listener, whether that listener be pragmatic or literal. 
 
-`smith-interface.scm` contains an interface for building **speakers** (meaning->message procedures) and **listeners** (message->meaning procedures) of the literal and pragmatic types. These procedures can then be used to make agents in the experiment framework.
+`smith-interface.scm` contains an interface for building **speakers** (`meaning->message` procedures) and **listeners** (`message->meaning` procedures) of the literal and pragmatic types. These procedures can then be used to make agents in the experiment framework.
 
 `smith-interface.scm` defines constructors for literal listeners and literal speakers that look up utterances in an alist (their lexicon). There are constructors for pragmatic listeners: these are constructed by passing in a speaker, which the pragmatic listener will reason about. And there is a constructor for pragmatic speakers: these are constructed by passing in a listener *and a speaker* (there are subtle reasons why this is necessary: to find out, consult the commentary in `smith-interface.scm`). We also provide constructors for "language interfaces", which are just speaker-listener pairs. 
 
 Here is how we can build an agent that listens by reasoning about a literal speaker, and that speaks by reasoning about a pragmatic listener:
 
-<code>
-(make-pragmatic-language-interface
-  (make-literal-listener-language-interface lexicon))
-</code>
+    (make-pragmatic-language-interface
+      (make-literal-listener-language-interface lexicon))
 
 Here's the cool part: the pragmatic speakers and listeners are built on top of any other listeners and speakers. So it is possible that the base case of the recursion is not just a `literal-listener` as defined in `smith-interface`, but rather something more complex like a Beal agent. Or the pragmatic language interfaces can sit on top of other pragmatic langauge interfaces:
 
-<code>
-(make-pragmatic-language-interface
- (make-pragmatic-language-interface
-  (make-pragmatic-language-interface
-   (make-pragmatic-language-interface
     (make-pragmatic-language-interface
-     (make-literal-listener-language-interface lexicon))))))
-</code>
+     (make-pragmatic-language-interface
+      (make-pragmatic-language-interface
+       (make-pragmatic-language-interface
+        (make-pragmatic-language-interface
+         (make-literal-listener-language-interface lexicon))))))
 
 We provide two implementations of the Smith interface. The first is written in Church, a probabilistic variant of Scheme. This is `simple-pragmatics.church`. Since the existing Church implementations are quite slow, this has not been tested with deeply nested agents; but it is useful as a conceptual model.
 
