@@ -4,8 +4,39 @@ A Library for/of Communicating Machines
 Project for 6.945, Spring 2014
 James Duyck and Richard Futrell
 
-Experimental Setup
+We want to create a highly modular framework in which to implement and experiment with various models of machines that rationally communicate with each other, or which learn to communicate.
+
+Experiment Harness
 ------------------
+
+We want to create an experimental harness that allows agents to be specified in a highly modular way. 
+
+The experimental setup is as follows. There is a **universe** which generates **events** (the denotations of messages to be encoded). There are two agents. In an experimental trial, one or both agents **perceive** an **event**, producing an internal representation of the event. Then an agent **encodes** the event into a message, it passes through the channel to the other agent, and that agent **decodes** it into an internal representation. That internal representation is then **interpreted** 
+
+So there are two basic kinds of bidirectional interfaces:
+1. Universe <-> Agent. The agent `perceives` events from the universe (event -> agent's internal representation), and `interprets` its internal event representations when sending them to the universe for feedback (agent's internal representation -> event). This interface is fixed.
+2. Agent <-> Agent. The agents encode messages (agent's internal representation -> message) and decode messages (message -> agent's internal representation). This interface is to be learned.
+
+An *agent* consists of: 
+1. A language (more on that soon),
+2. `perceive-proc` and `interpret-proc`: These comprise the interface with the universe.
+3. History: An agent's memory for previous communication trials in an experiment.
+4. `feedback-proc`: A feedback procedure which might mutate the language.
+
+A *language* is fundamentally a pair of procedures `meaning->message` and `message->meaning`. For the purposes of carrying out experiment, an experimenter might want to specify a few more parts. So in the experiment harness, a language is parameterized by:
+1. A grammar, which can be anything. If the procedures `meaning->message` and `message->meaning` involve any shared body of knowledge, then this object references that, and allows it to be accessed and updated.
+2. A procedure `meaning->message`
+3. A procedure `message->meaning`
+4. A procedure `update-grammar!` which will be called by `feedback-proc`.
+5. `parent-agent`: A thunk of the agent that has this language. 
+
+In the interests of flexibility, we decided that the steps in each experimental trial (e.g. perceiving events, encoding messages, ...) occur by mutation of variables such as `last-message-in`. Using state here has a major drawback in terms of implementation: it limits the interoperability of our code with probabilistic programming languages such as Church which are pure. 
+
+However, we originally tried to implement the experimental trials as statelessly as possible, and found it quite cumbersome. You can see fragments of this attempt in `sketch-1.scm`. In particular, the feedback procedure was troublesome. It might require the entire history of variables generated during a trial and in previous trials; the exact form of the feedback function and what information it needs should be specified by the experimentor. When trials proceed statelessly, this means that **all** the intermediate variables generated need to be passed into the feedback function, forcing the experimentor to write a feedback function with a very large number of arguments, most of which will probably be thrown away. In general, rather than make potentially limiting design decisions about what information would go exactly where, it seemed simpler to us to  have have each trial develop various state variables and allow the experimentor to access those variables.
+
+
+Beal Model
+----------
 
 
 Smith, Frank & Goodman Model
