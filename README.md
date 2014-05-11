@@ -17,7 +17,7 @@ There are two ways agents could communicate: first, **literally**: they formulat
 
 For example, suppose Alice wants to communicate one of these three entities to Bob:
 
-![Three entities](http://github.mit.edu/futrell/6.945-project/blob/master/faces.png)
+![Three entities](http://web.mit.edu/futrell/www/faces.png)
 
 Suppose she sends the message "the faces with glasses". In fact, in experiments, this is often the message that people choose to send to indicate the second face (the one with ONLY glasses). Now if Bob's language interpretation procedure is just to look up the meanings in a lookup table of some kind, he'll be in trouble: there are two faces here that have glasses. 
 
