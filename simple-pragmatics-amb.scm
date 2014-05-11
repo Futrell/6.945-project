@@ -75,7 +75,8 @@ Usually these values are in the vicinity of 32.
 
 (define (make-pragmatic-listener meaning->message)
   (lambda (message)
-    (let ((possible-meanings ((do-n-times sample-universe-event *sample-size*))))
+    (let ((possible-meanings
+           ((do-n-times sample-universe-event *sample-size*))))
       (let ((meaning (amb-from-list possible-meanings)))
         (require (eq? (meaning->message meaning) message))
         meaning))))
@@ -142,19 +143,41 @@ he's talking to a pragmatic listener?
   (make-pragmatic-language-interface
    (make-literal-listener-language-interface lexicon)))
 
-(define pp-speaker (language-interface-message->meaning pragmatic-language))
-(define pp-listener (language-interface-meaning->message pragmatic-language))
+(define pp-speaker (language-interface-meaning->message pragmatic-language))
+(define pp-listener (language-interface-message->meaning pragmatic-language))
 
-(pp-speaker 'man)
+(count-true (lambda (x) (eq? x 'man-with-nothing))
+            ((do-n-times pp-speaker 50) 'man))
+;Value: 38
+
+(count-true (lambda (x) (eq? x 'man-with-glasses))
+            ((do-n-times pp-speaker 50) 'man-with-hat-and-glasses))
+;Value: 11
+
+The pragmatic speaker knows to avoid calling the man with the hat and glasses
+"the man with glasses".
+
+Let's make it one level deeper. (Experimental evidence suggests that this is
+the maximal depth for human language use.) The amb-rejection-sampling
+mechanism now becomes very slow and starts causing us to run out of memory...
+
+(define pragmatic-pragmatic-language
+  (make-pragmatic-language-interface
+   (make-pragmatic-language-interface
+    (make-literal-listener-language-interface lexicon))))
+
+(define ppp-speaker (language-interface-meaning->message
+                     pragmatic-pragmatic-language))
+(define ppp-listener (language-interface-message->meaning
+                     pragmatic-pragmatic-language))
 
 (count-true (lambda (x) (eq? x 'man-with-only-glasses))
-            ((do-n-times pp-speaker 100) 'man-with-only-glasses))
-;Value: 100
-This speaker has found the most error-free way to talk.
+            ((do-n-times ppp-listener 1) 'man-with-glasses))
+  
+;Value: 6
 
-
-(count-true (lambda (x) (eq? x 'man))
-            ((do-n-times pp-speaker 100) 'man))
+So it's not clear if these agents are able to figure out that when
+a pragmatic speaker says "man with glasses", it means the man with ONLY
+glasses, not the man with glasses and a hat.
 
 |#
-
