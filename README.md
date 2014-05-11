@@ -17,7 +17,7 @@ There are two ways agents could communicate: first, **literally**: they formulat
 
 For example, suppose Alice wants to communicate one of these three entities to Bob:
 
-![Three entities](faces.png)
+![Three entities](http://github.mit.edu/futrell/6.945-project/blob/master/faces.png)
 
 Suppose she sends the message "the faces with glasses". In fact, in experiments, this is often the message that people choose to send to indicate the second face (the one with ONLY glasses). Now if Bob's language interpretation procedure is just to look up the meanings in a lookup table of some kind, he'll be in trouble: there are two faces here that have glasses. 
 
@@ -58,3 +58,6 @@ We provide two implementations of the Smith interface. The first is written in C
 The second implementation uses `amb` to implement inference by rejection sampling. The mechanism here is to generate many samples of utterances or meanings randomly, then do conditioning using `amb`'s `require` mechanism. This implementation is tested against two universes. The first is found in `simple-pragmatics-test.scm`. This is a friendly universe with no ambiguity. The second is `simple-pragmatics-test-ambiguous.scm`, which is the universe with the three faces as in the figure above. In this universe, the `amb`-pragmatic agents end up producing fewer ambiguous utterances than the literal agents, so they are more effective communicators. However, we start to run into out-of-memory errors with two layers of pragmatic reasoning. The test cases can be seen in `simple-pragmatics-amb.scm`. 
 
 Future work on these agents will probably involve figuring out how to improve the efficiency of inference. 
+
+References
+----------
