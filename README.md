@@ -61,3 +61,9 @@ Future work on these agents will probably involve figuring out how to improve th
 
 References
 ----------
+J. Beal. (2001). An Algorithm for Bootstrapping Communications. AI Memo 2001-016.
+J. Beal. (2002). Generating Communications Systems Through Shared Context. Master's Thesis, AI Tech Report 2002-002.
+M. C. Frank & N. D. Goodman. (2012). Predicting pragmatic reasoning in language games. Science 336: 998.
+N. J. Smith, N. D. Goodman & M. C. Frank. (2013). Learning and using language via recursive pragmatic reasoning about other agents. Advances in Neural Information Processing Systems, 3039-3047.
+
+
