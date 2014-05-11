@@ -14,21 +14,21 @@ We want to create an experimental harness that allows agents to be specified in 
 The experimental setup is as follows. There is a **universe** which generates **events** (the denotations of messages to be encoded). There are two agents. In an experimental trial, one or both agents **perceive** an **event**, producing an internal representation of the event. Then an agent **encodes** the event into a message, it passes through the channel to the other agent, and that agent **decodes** it into an internal representation. That internal representation is then **interpreted** 
 
 So there are two basic kinds of bidirectional interfaces:
-1. Universe <-> Agent. The agent `perceives` events from the universe (event -> agent's internal representation), and `interprets` its internal event representations when sending them to the universe for feedback (agent's internal representation -> event). This interface is fixed.
-2. Agent <-> Agent. The agents encode messages (agent's internal representation -> message) and decode messages (message -> agent's internal representation). This interface is to be learned.
+1.  Universe <-> Agent. The agent `perceives` events from the universe (event -> agent's internal representation), and `interprets` its internal event representations when sending them to the universe for feedback (agent's internal representation -> event). This interface is fixed.
+2.  Agent <-> Agent. The agents encode messages (agent's internal representation -> message) and decode messages (message -> agent's internal representation). This interface is to be learned.
 
 An *agent* consists of: 
-1. A language (more on that soon),
-2. `perceive-proc` and `interpret-proc`: These comprise the interface with the universe.
-3. History: An agent's memory for previous communication trials in an experiment.
-4. `feedback-proc`: A feedback procedure which might mutate the language.
+1.  A language (more on that soon),
+2.  `perceive-proc` and `interpret-proc`: These comprise the interface with the universe.
+3.  History: An agent's memory for previous communication trials in an experiment.
+4.  `feedback-proc`: A feedback procedure which might mutate the language.
 
 A *language* is fundamentally a pair of procedures `meaning->message` and `message->meaning`. For the purposes of carrying out experiment, an experimenter might want to specify a few more parts. So in the experiment harness, a language is parameterized by:
-1. A grammar, which can be anything. If the procedures `meaning->message` and `message->meaning` involve any shared body of knowledge, then this object references that, and allows it to be accessed and updated.
-2. A procedure `meaning->message`
-3. A procedure `message->meaning`
-4. A procedure `update-grammar!` which will be called by `feedback-proc`.
-5. `parent-agent`: A thunk of the agent that has this language. 
+1.  A grammar, which can be anything. If the procedures `meaning->message` and `message->meaning` involve any shared body of knowledge, then this object references that, and allows it to be accessed and updated.
+2.  A procedure `meaning->message`
+3.  A procedure `message->meaning`
+4.  A procedure `update-grammar!` which will be called by `feedback-proc`.
+5.  `parent-agent`: A thunk of the agent that has this language. 
 
 In the interests of flexibility, we decided that the steps in each experimental trial (e.g. perceiving events, encoding messages, ...) occur by mutation of variables such as `last-message-in`. Using state here has a major drawback in terms of implementation: it limits the interoperability of our code with probabilistic programming languages such as Church which are pure. 
 
