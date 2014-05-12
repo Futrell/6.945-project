@@ -37,13 +37,15 @@ In the interests of flexibility, we decided that the steps in each experimental 
 
 However, we originally tried to implement the experimental trials as statelessly as possible, and found it quite cumbersome. You can see fragments of this attempt in `sketch-1.scm`. In particular, the feedback procedure was troublesome. It might require the entire history of variables generated during a trial and in previous trials; the exact form of the feedback function and what information it needs should be specified by the experimentor. When trials proceed statelessly, this means that **all** the intermediate variables generated need to be passed into the feedback function, forcing the experimentor to write a feedback function with a very large number of arguments, most of which will probably be thrown away. In general, rather than make potentially limiting design decisions about what information would go exactly where, it seemed simpler to us to  have have each trial develop various state variables and allow the experimentor to access those variables.
 
-![Data flow through system](http://web.mit.edu/jduyck/www/dfd.png)
+![Data flow through system](http://web.mit.edu/~jduyck/www/dfd.png.png)
+
+This diagram shows the main data structures of the experiment harness. Note the **history** data structure, which holds state information. Also note that each agent may have connections to multiple channels.
 
 
 Beal Model
 ----------
 
-We based much of the Experiment Harness around the framework used by Beal (2001, 2002). The Experiment Harness contains a generalized version of the parts of Beal's framework that we thought were not unique to Beal's experiments. `beal.scm` contains elements of Beal's framework that are specific to the problem that he studied. We have simplified some elements of Beal's method.
+We based much of the experiment harness around the framework used by Beal (2001, 2002). The experiment harness contains a generalized version of the parts of Beal's framework that we thought were not unique to Beal's experiments. `beal.scm` contains elements of Beal's framework that are specific to the problem that he studied. We have simplified some elements of Beal's method.
 
 In Beal's model, there are two agents. Each agent has a set of **feature lines** and the agents are connected by **comm lines**. 
 
