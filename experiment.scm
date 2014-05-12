@@ -1,6 +1,8 @@
-;;; Goal: Hack together a simple functional mock-up of the
-;;; architecture. Agents that communicate two symbols, 'foo and 'bar. 
-;;;
+;;; This file contains the experimental infrastructure as well as a
+;;; simple mockup of communicating agents as integrated into the
+;;; infrastructure.
+
+;;; Structure of experiments:
 ;;;
 ;;;          (Universe)
 ;;;         /          \
@@ -8,132 +10,13 @@
 ;;;       /              \
 ;;;  (Alice) - - - - - - (Bob)
 ;;;
-;;; To model:
-;;; Interfaces:
-;;;    Universe -> Alice (universe representation of events -> Alice's
-;;;                 representation of events) (Alice's perception
-;;;                 function)
-;;;
-;;;    Alice -> Universe (Alice's representation of events ->
-;;;                 Universe's representation of events) (Alice's
-;;;                 interpretation function)
-;;;
-;;;    Alice -> Bob (Alice's encoding procedure)
-;;;    Bob -> Alice (Alice's decoding procedure)
-;;;    Optional: Feedback Alice -> Bob and/or Bob -> Alice. 
-;;;    Optional: Feedback Universe -> Alice.
-;;;
-;;; Things:
-;;;    Universe: Generates events.
-;;;    Channel: The communication channel, introduces noise maybe.
-;;;    Language: The grammar that the agents learn, which informs
-;;;        their encoding and decoding methods. This includes update
-;;;        mechanisms. 
-;;;
-;;; The universe interfaces are fixed. The task is to learn the
-;;; communication interfaces. 
+;;; The universe<->agent interfaces are fixed. The task is to learn
+;;; the agent<->agent communication interfaces.
 
+(load "helpers")
 
-;;; UTILS
-
-(define (list-set-at! lst n val)
-  (set-car! (list-tail lst n) val)) 
-  ;; http://stackoverflow.com/questions/7382117
-
-(define dict-end '(end# end#))
-
-(define (dict) (list dict-end))
-
-(define (dict-put! alist key val) 
-  ;; Adds a value to a key, replacing previous values for
-  ;; the key 
-  (if (and (assq key alist) 
-           (not (eq? (assq key alist) dict-end)))
-      (let ((dict-mem (member-procedure 
-                        (lambda (ele obj) (eq? obj (car ele))))))
-        (set-car! (dict-mem key alist) (list key val)))
-      (begin
-        (set-car! (list-tail alist (- (length alist) 1))
-                  (list key val))
-        (set-cdr! (list-tail alist (- (length alist) 1))
-                  (list dict-end)))))
-
-(define silence '(silence))
-;;;
-
-(define gensym generate-uninterned-symbol)
-
-;;; let's do the simplest possible mockup
-(define (sample-universe-event)
-  (list-ref '(foo bar) (random 2)))
-
-
+(define silence '(silence)) ; used when one agent doesn't speak
 ;;; LANGUAGE
-
-;;; For now a language is just a mapping of semantic symbols to
-;;; message symbols. A bidirectional association list for now.
-(define (lookup-ref object alist n) ; n = 0 or 1
-  (let ((assq-ref (association-procedure eq? 
-                      (lambda (lst) (list-ref lst n)))))
-    (let ((result (assq-ref object alist)))
-      (if result
-          (list-ref result (- 1 n)) ; 1->0, 0->1
-          #f))))
-
-(define (make-simple-language parent-agent) 
-  (define grammar '())
-
-  (define (add-meaning-message-pair-to-grammar! meaning message)
-    (set! grammar (cons (list meaning message) grammar))
-    (pp "new grammar:")
-    (pp grammar))
-
-  (define respond-to-feedback! add-meaning-message-pair-to-grammar!)
-
-  (define (dont-know-message-for-meaning meaning)
-    (let ((made-up-message (gensym)))
-      (add-meaning-message-pair-to-grammar! meaning made-up-message)
-      made-up-message))
-
-  (define (dont-know-meaning-of-message message)
-    'i-dont-know) ; give up
-
-  (define (meaning->message meaning parameters) ; Make these "abstract methods"
-    (let ((message (lookup-ref meaning grammar 0)) ; make this
-          (agent-to-speak (car parameters)))
-                                        ; grammar-lookup 
-      (if (eq? agent-to-speak (parent-agent))
-          (if message
-              message
-              (dont-know-message-for-meaning meaning))
-          silence)))
-
-  (define (message->meaning message parameters)
-    (let ((meaning (lookup-ref message grammar 1))
-          (agent-to-speak (car parameters)))
-      (if (not (eq? agent-to-speak (parent-agent)))
-        (if meaning
-            meaning
-            (dont-know-meaning-of-message message))
-        silence)))
-
-  (define (update-grammar! feedback) ; let's say feedback in this case
-                                    ; is a signal during the training
-                                    ; phase which says "the correct
-                                    ; interpretation of the previous trial
-                                    ; was x". Feedback needs to be an
-                                    ; object that wraps up many
-                                    ; things....
-    (if (not (eq? feedback 'ok))
-        (begin
-          (apply respond-to-feedback! feedback))))
-
-
-  (make-language grammar 
-                 meaning->message 
-                 message->meaning 
-                 update-grammar!
-                 parent-agent))
 
 (define (make-language grammar 
                        meaning->message 
@@ -161,7 +44,6 @@
 
 (define (get-agent language)
   ((list-ref language 4)))
-
 
 
 ;;; HISTORY
@@ -262,13 +144,6 @@
       (list ((get-perceive-proc agent) event) rec-message)
       'ok))
 
-(define (make-simple-agent)
-  (make-agent make-simple-language
-              (lambda (x) x)
-              (lambda (x) x)
-              make-basic-history
-              basic-feedback-proc))
-
 
 ;;; CHANNEL
 
@@ -286,14 +161,10 @@
      (get-channel-agent1 channel))
     (else (error "No such agent for this channel")))) 
 
-(define (reverse items)
-  (fold-right (lambda (x r) (append r (list x))) '() items))
-
 (define (transmit channel-model message)
   (channel-model message))
 
-(define (noiseless-channel message) message)
-
+(define (noiseless-channel message) message) ; a helper
 
 (define (channel-transmit channel parameters)
   (let* ((a1-message 
@@ -340,16 +211,6 @@
 
 ;;; EXPERIMENTAL SETUP
           
-(define number-of-training-runs 5)
-(define number-of-test-runs 5)
-
-(define (do-n-times n thunk)
-  (define (iterate i)
-    (if (< i n)
-        (begin (thunk) 
-               (iterate (+ i 1)))))
-  (iterate 0))
-
 (define (make-experiment agents 
                          channels
                          sample-universe-event)
@@ -369,18 +230,6 @@
                 (lambda ()
                   (run-cycle 'testing))))
   run)
-
-(define (make-simple-experiment)
-  (let* ((agent-1 (make-simple-agent))
-         (agent-2 (make-simple-agent))
-         (channel (make-channel noiseless-channel agent-1 agent-2)))
-    (make-experiment (list agent-1 agent-2)
-                     (list channel)
-                     sample-universe-event)))
-
-(define (tap x)
-  (pp x)
-  x)
 
 (define (one-full-cycle
          agents
@@ -461,42 +310,91 @@
          (channel-interpret-all channel parameters))
        channels))
 
-
-;;; this is tricky: we need to be able to specify how feedback works
-;;; parametrically, but there are many kinds of possible feedback!
-;;; Maybe we should just make the user supply this function?
-;;;
-;;; Anyway, for this simple mockup, let's assume that feedback works
-;;; this way: In training, if an agent gets the decoded-meaning
-;;; 'i-dont-know or gets it wrong, the universe will tell him what was
-;;; intended. (In this simple setup, an agent should never get
-;;; anything wrong.)
 (define (do-feedback channels parameters)
   (map (lambda (channel)
          (channel-give-feedback channel parameters))
        channels))
 
-;;; Two functions: one doing the mapping here; another calculating
-;;; what the feedback is, along these dimensions:
 
-;;;                correction     right/wrong
-;;; no reason
-;;; reason
-;;; 
+;;; let's do the simplest possible mockup
+(define (sample-universe-event)
+  (random-choice '(foo bar)))
 
-;;; Refactor Each AGENT asks for a kind of feedback. XXXX
-;;; Generalize the language interface XX
-;;; Names: Write a document to standardize. 
+;;; For now a language is just a mapping of semantic symbols to
+;;; message symbols. A bidirectional association list for now.
 
+(define (lookup-ref object alist n) ; n = 0 or 1
+  (let ((assq-ref (association-procedure eq? 
+                      (lambda (lst) (list-ref lst n)))))
+    (let ((result (assq-ref object alist)))
+      (if result
+          (list-ref result (- 1 n)) ; 1->0, 0->1
+          #f))))
 
-;;; I think that it would make sense to have a couple levels of
-;;; complexity (sort of thinking along the lines of the Making Magic
-;;; article Robert cited). 
-;;; In particular, there are some elements of the agents that most
-;;; people won't want to change, so we can have them more strongly
-;;; built-in (i.e. most programmers don't see them).
-;;; The main case that I'm thinking of is only having agents remember
-;;; one time-step of the past. If someone really wants more they can
-;;; alter the agent code or the way 'grammar' works, but otherwise
-;;; there's just one available.
+(define (make-simple-language parent-agent) 
+  (define grammar '())
+
+  (define (add-meaning-message-pair-to-grammar! meaning message)
+    (set! grammar (cons (list meaning message) grammar))
+    (pp "new grammar:")
+    (pp grammar))
+
+  (define respond-to-feedback! add-meaning-message-pair-to-grammar!)
+
+  (define (dont-know-message-for-meaning meaning)
+    (let ((made-up-message (gensym)))
+      (add-meaning-message-pair-to-grammar! meaning made-up-message)
+      made-up-message))
+
+  (define (dont-know-meaning-of-message message)
+    'i-dont-know) ; give up
+
+  (define (meaning->message meaning parameters) 
+    (let ((message (lookup-ref meaning grammar 0)) 
+          (agent-to-speak (car parameters)))
+
+      (if (eq? agent-to-speak (parent-agent))
+          (if message
+              message
+              (dont-know-message-for-meaning meaning))
+          silence)))
+
+  (define (message->meaning message parameters)
+    (let ((meaning (lookup-ref message grammar 1))
+          (agent-to-speak (car parameters)))
+      (if (not (eq? agent-to-speak (parent-agent)))
+        (if meaning
+            meaning
+            (dont-know-meaning-of-message message))
+        silence)))
+
+  (define (update-grammar! feedback) 
+    (if (not (eq? feedback 'ok))
+        (begin
+          (apply respond-to-feedback! feedback))))
+
+  (make-language grammar 
+                 meaning->message 
+                 message->meaning 
+                 update-grammar!
+                 parent-agent))
+
+(define (make-simple-agent)
+  (make-agent make-simple-language
+              (lambda (x) x)
+              (lambda (x) x)
+              make-basic-history
+              basic-feedback-proc))
+
+(define number-of-training-runs 5)
+(define number-of-test-runs 5)
+
+(define (make-simple-experiment)
+  (let* ((agent-1 (make-simple-agent))
+         (agent-2 (make-simple-agent))
+         (channel (make-channel noiseless-channel agent-1 agent-2)))
+    (make-experiment (list agent-1 agent-2)
+                     (list channel)
+                     sample-universe-event)))
+
 
