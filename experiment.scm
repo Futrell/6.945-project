@@ -223,11 +223,11 @@
       (one-full-cycle agents event channels parameters clock)))
   
   (define (run)
-    (do-n-times (lambda () (run-cycle 'training))
-                number-of-training-runs)
-    (do-n-times (lambda () (run-cycle 'testing))
-                number-of-test-runs))
-  (run))
+    ((do-n-times (lambda () (run-cycle 'training))
+                number-of-training-runs))
+    ((do-n-times (lambda () (run-cycle 'testing))
+                number-of-test-runs)))
+  run)
 
 (define (one-full-cycle
          agents
