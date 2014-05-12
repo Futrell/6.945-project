@@ -223,13 +223,11 @@
       (one-full-cycle agents event channels parameters clock)))
   
   (define (run)
-    (do-n-times number-of-training-runs
-                (lambda ()
-                  (run-cycle 'training)))
-    (do-n-times number-of-test-runs
-                (lambda ()
-                  (run-cycle 'testing))))
-  run)
+    (do-n-times (lambda () (run-cycle 'training))
+                number-of-training-runs)
+    (do-n-times (lambda () (run-cycle 'testing))
+                number-of-test-runs))
+  (run))
 
 (define (one-full-cycle
          agents
@@ -244,13 +242,8 @@
        channels)
   (agents-decode channels parameters)
   (agents-interpret channels parameters)
-  (do-feedback channels parameters) ; what is
-                                        ; the best way to specify how
-                                        ; feedback works? it doesn't
-                                        ; seem right to pass in all
-                                        ; this stuff...
+  (do-feedback channels parameters) 
   'ok)
-
 
 (define (agents-perceive agents event parameters)
   (let ((meanings 
@@ -381,7 +374,7 @@
 
 (define (make-simple-agent)
   (make-agent make-simple-language
-              (lambda (x) x)
+              (lambda (x) x) 
               (lambda (x) x)
               make-basic-history
               basic-feedback-proc))
@@ -398,3 +391,22 @@
                      sample-universe-event)))
 
 
+#| Tests
+
+The mock agents learn very simple mappings:
+
+(define run (make-simple-experiment))
+;Value: run
+
+(run)
+"new grammar:"
+((bar |G10|))
+"new grammar:"
+((foo |G11|) (bar |G10|))
+"new grammar:"
+((bar |G12|))
+"new grammar:"
+((foo |G13|) (bar |G12|))
+;Value 13: (ok ok ok ok ok)
+
+|#

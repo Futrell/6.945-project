@@ -40,3 +40,39 @@
 ;Value: 3
 
 |#
+
+(define (list-set-at! lst n val)
+  (set-car! (list-tail lst n) val)) 
+  ;; http://stackoverflow.com/questions/7382117
+
+(define dict-end '(end# end#))
+
+(define (dict) (list dict-end))
+
+(define (dict-put! alist key val) 
+  ;; Adds a value to a key, replacing previous values for
+  ;; the key 
+  (if (and (assq key alist) 
+           (not (eq? (assq key alist) dict-end)))
+      (let ((dict-mem (member-procedure 
+                        (lambda (ele obj) (eq? obj (car ele))))))
+        (set-car! (dict-mem key alist) (list key val)))
+      (begin
+        (set-car! (list-tail alist (- (length alist) 1))
+                  (list key val))
+        (set-cdr! (list-tail alist (- (length alist) 1))
+                  (list dict-end)))))
+
+(define gensym generate-uninterned-symbol)
+
+(define (reverse items)
+  (fold-right (lambda (x r) (append r (list x))) '() items))
+
+(define (tap x)
+  ;; Print then return; useful for debugging.
+  (pp x)
+  x)
+
+(define (random-choice lst)
+  (list-ref lst (random (length lst))))
+

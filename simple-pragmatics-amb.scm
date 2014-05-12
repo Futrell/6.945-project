@@ -11,9 +11,6 @@
 (define pair cons)
 (define rest cdr)
 
-(define (random-choice lst)
-  (list-ref lst (random (length lst))))
-
 (define (match-procedure thing-to-query thing-to-get)
   (define (matches alist thing)
     (define (find-matches alist found-so-far)
@@ -30,6 +27,7 @@
 
 (define matches (match-procedure first second))
 (define reverse-matches (match-procedure second first))
+
 
 (define (sample-universe-event)
   (random-choice universe))
