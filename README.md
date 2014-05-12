@@ -9,7 +9,7 @@ We want to create a highly modular framework in which to implement and experimen
 Experiment Harness
 ------------------
 
-We want to create an experimental harness that allows agents to be specified in a highly modular way. 
+We want to create an experimental harness that allows agents to be specified in a highly modular way. What we made is in `experiment.scm`.
 
 The experimental setup is as follows. There is a **universe** which generates **events** (the denotations of messages to be encoded). There are two agents. In an experimental trial, one or both agents **perceive** an **event**, producing an internal representation of the event. Then an agent **encodes** the event into a message, it passes through the channel to the other agent, and that agent **decodes** it into an internal representation. That internal representation is then **interpreted**, producing an event which the universe can then evaluate for feedback purposes.
 
